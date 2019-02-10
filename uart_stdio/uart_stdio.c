@@ -3,8 +3,9 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 
-#define BAUD 19200
-#define UBRR_VAL (((F_CPU/(16UL*BAUD)))-1)
+/* BAUD must be defined before including util/setbaud.h */
+#define BAUD 115200
+#include <util/setbaud.h>
 
 void uart_init(void);
 char uart_getchar(void);
@@ -52,8 +53,14 @@ int main (void)
 
 void uart_init(void)
 {
-        UBRR0L = (uint8_t) UBRR_VAL;
-        UBRR0H = (uint8_t) (UBRR_VAL>>8);
+        UBRR0L = UBRRL_VALUE;
+        UBRR0H = UBRRH_VALUE;
+
+        #if USE_2X
+        UCSR0A |= _BV(U2X0);
+        #else
+        UCSR0A &= ~_BV(U2X0);
+        #endif
     
         UCSR0B = _BV(RXEN0)|_BV(TXEN0); /* RX + TX enabled */
         UCSR0C = _BV(UCSZ01)|_BV(UCSZ00); /* 1 stop bit, 8bit char, async */
